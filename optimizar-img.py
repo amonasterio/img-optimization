@@ -23,7 +23,7 @@ if not os.path.exists(path):
   os.mkdir(path)
 
 
-f_entrada='entradas.csv'
+f_entrada='entradas_2.csv'
 df=pd.read_csv(f_entrada)
 df_output=pd.DataFrame(columns=['img_name', 'bytes_old', 'width_old','height_old','bytes_new', 'width_new','height_new'],
 index=df.index)
@@ -56,20 +56,22 @@ for i in range(len(df)):
       else:
         calidad=70 #calidad por defecto
       image.save(ruta_comprimida,optimize = True, quality = calidad)
-      tam_nuevo=os.stat(ruta_comprimida).st_size
-      #si el tamaño es superior, dejamos la versión actual
+      tam_nuevo=os.stat(ruta_comprimida).st_size    
+      #si el tamaño es superior, dejamos la versión actual  
       if(tam_nuevo>tam_actual):
-        shutil.copy(img_name,ruta_comprimida)
-      df_output.iloc[i,4]=os.stat(ruta_comprimida).st_size
+        eliminaFichero(ruta_comprimida)
+        df_output.iloc[i,4]=tam_actual
+      else:
+        df_output.iloc[i,4]=tam_nuevo
       df_output.iloc[i,5]=image.size[0]
       df_output.iloc[i,6]=image.size[1] 
-      image.close() 
     except  Exception as e:
       print("error: "+img_name)
-      df_output.iloc[i,4]="error"
-      df_output.iloc[i,5]="error"
-      df_output.iloc[i,6]="error" 
+      df_output.iloc[i,4]=tam_actual
+      df_output.iloc[i,5]=0
+      df_output.iloc[i,6]=0 
+    image.close() 
     eliminaFichero(img_name)
     time.sleep(1)
-df["optimizacion"]=(df["bytes_new"]-df["bytes_old"])/df["bytes_old"]
-df_output.to_csv("resumen.csv")
+df_output["optimizacion"]=(df_output["bytes_new"]-df_output["bytes_old"])/df_output["bytes_old"]
+df_output.to_csv("resumen.csv",index=False)
